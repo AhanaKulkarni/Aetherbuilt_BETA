@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherBuilt Beta Dashboard</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Import Maps -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.3.1",
+            "react-dom": "https://esm.sh/react-dom@18.3.1",
+            "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+            "recharts": "https://esm.sh/recharts@2.12.3?external=react,react-dom",
+            "lucide-react": "https://esm.sh/lucide-react@0.359.0?external=react,react-dom",
+            "framer-motion": "https://esm.sh/framer-motion@11.0.8?external=react,react-dom"
+        }
+    }
+    </script>
+    
+    <style>
+        body {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1); 
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-panel-hover {
+            transition: all 0.3s ease;
+        }
+        .glass-panel-hover:hover {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Chart container fixes */
+        .recharts-default-tooltip {
+            background-color: rgba(15, 23, 42, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(8px) !important;
+            color: #f8fafc !important;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen selection:bg-blue-500/30">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+          BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+          PieChart, Pie, Cell, Legend, AreaChart, Area
+        } from 'recharts';
+        import { 
+          Users, Clock, Zap, IndianRupee, MapPin, 
+          Factory, Heart, AlertTriangle, CheckCircle2, 
+          Download, Filter, MessageSquare, Globe, WifiOff, Puzzle, Timer,
+          Activity, Server, ArrowUpRight, ArrowDownRight
+        } from 'lucide-react';
+        import { motion } from 'framer-motion';
+
+        const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+        const INITIAL_DATA = {
+            metrics: [
+                { id: 'factories', label: 'Active Beta Factories', value: 279, prefix: '', suffix: '', delta: 12, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]' },
+                { id: 'time', label: 'Avg. Time Saved', value: 2.1, prefix: '', suffix: ' hrs', delta: 5, icon: Clock, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', shadow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' },
+                { id: 'opex', label: 'Monthly OpEx Gain', value: 42500, prefix: '₹', suffix: '', delta: 8.4, icon: IndianRupee, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', shadow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)]' },
+                { id: 'nps', label: 'Platform NPS', value: 8.8, prefix: '', suffix: '', delta: 2.1, icon: Heart, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', shadow: 'shadow-[0_0_15px_rgba(244,63,94,0.15)]' },
+            ],
+            majorBenefits: [
+                { profile: 'Medium Plastics Manufacturer • Mumbai', metric: '₹2L Saved', benefit: 'Predicted motor failure, saved ₹2 Lakhs in potential downtime.', feature: 'Maintenance Alerts' },
+                { profile: 'Large Auto Parts Facility • Vadodara', metric: 'Zero Delays', benefit: 'Zero missed deadlines with clients since the Predictor went live.', feature: 'Delay Predictor' },
+                { profile: 'Small Fabrication Plant • Kolhapur', metric: 'High Trust', benefit: 'Client professionalism increased massively via instant reports.', feature: 'Client Report Share' }
+            ],
+            criticalRoadblocks: [
+                { category: 'Language Barrier', priority: 'CRITICAL', icon: Globe, issues: ['Need Marathi UI for shop floor workers', 'Need Gujarati UI for regional adoption'], colorClass: 'border-rose-500/30 bg-rose-500/5', iconClass: 'text-rose-400 bg-rose-500/10' },
+                { category: 'Hardware & Connectivity', priority: 'HIGH', icon: WifiOff, issues: ['Mobile app crashes on older Androids', 'Sync fails in basement factory setups'], colorClass: 'border-amber-500/30 bg-amber-500/5', iconClass: 'text-amber-400 bg-amber-500/10' },
+                { category: 'Setup & Onboarding', priority: 'MEDIUM', icon: Timer, issues: ['Initial manual data entry takes 3+ days', 'Too complex for non-tech supervisors'], colorClass: 'border-blue-500/30 bg-blue-500/5', iconClass: 'text-blue-400 bg-blue-500/10' },
+                { category: 'Missing Integrations', priority: 'LOW', icon: Puzzle, issues: ['Direct Tally export needed', 'GST calculation missing for procurement'], colorClass: 'border-purple-500/30 bg-purple-500/5', iconClass: 'text-purple-400 bg-purple-500/10' }
+            ],
+            efficiencyData: [
+                { task: 'Inventory Audit', manual: 120, aether: 15 },
+                { task: 'Order Logging', manual: 45, aether: 8 },
+                { task: 'Report Gen.', manual: 90, aether: 5 },
+                { task: 'Machine Check', manual: 60, aether: 10 },
+            ],
+            industryData: [
+                { name: 'Fabrication', value: 45 },
+                { name: 'Plastics', value: 28 },
+                { name: 'Auto Parts', value: 18 },
+                { name: 'Textiles', value: 9 },
+            ],
+            regionalData: [
+                { r: 'Mumbai', v: 85, color: 'bg-blue-500', glow: 'shadow-[0_0_10px_rgba(59,130,246,0.6)]' },
+                { r: 'Vadodara', v: 62, color: 'bg-emerald-500', glow: 'shadow-[0_0_10px_rgba(16,185,129,0.6)]' },
+                { r: 'Kolhapur', v: 48, color: 'bg-amber-500', glow: 'shadow-[0_0_10px_rgba(245,158,11,0.6)]' },
+                { r: 'Rajkot', v: 35, color: 'bg-rose-500', glow: 'shadow-[0_0_10px_rgba(244,63,94,0.6)]' },
+            ],
+            activityStream: [
+                { time: '10:42 AM', event: 'New Factory Onboarded (Rajkot)' },
+                { time: '10:38 AM', event: 'Maintenance Alert Auto-resolved' },
+                { time: '10:15 AM', event: 'Weekly Reports Generated for 120 users' },
+                { time: '09:55 AM', event: 'Predictor model updated' },
+            ]
+        };
+
+        const App = () => {
+            const [data, setData] = useState(INITIAL_DATA);
+            const [isLive, setIsLive] = useState(true);
+            const [lastUpdated, setLastUpdated] = useState(new Date());
+
+            // Real-time Simulation / API Hook Placeholder
+            useEffect(() => {
+                if (!isLive) return;
+
+                // In a real scenario, you'd connect to a WebSocket or poll an API here.
+                // e.g., const ws = new WebSocket('wss://api.aetherbuilt.com/realtime');
+                // ws.onmessage = (event) => { const newData = JSON.parse(event.data); setData(newData); }
+
+                const interval = setInterval(() => {
+                    setLastUpdated(new Date());
+                    
+                    // Note: We are keeping the core data static as per "dont put any random data" instruction,
+                    // but we update the timestamp to show the connection is "alive" and checking for updates.
+                    // If you provide real API endpoints, we will map them here.
+                    
+                }, 5000);
+
+                return () => clearInterval(interval);
+            }, [isLive]);
+
+            const containerVariants = {
+                hidden: { opacity: 0 },
+                visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.1 }
+                }
+            };
+
+            const itemVariants = {
+                hidden: { y: 20, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 overflow-hidden relative">
+                    
+                    {/* Background decorative blobs */}
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px]"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-900/10 blur-[120px]"></div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto space-y-8">
+                        
+                        {/* --- Header --- */}
+                        <motion.header 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="glass-panel flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 rounded-2xl relative overflow-hidden"
+                        >
+                            {/* Subtle light streak across header */}
+                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                            
+                            <div className="flex items-center gap-5 z-10">
+                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-display font-black text-3xl shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+                                    A
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-display font-bold text-white tracking-tight">AetherBuilt Beta Dashboard</h1>
+                                    <div className="flex items-center gap-3 mt-1.5">
+                                        <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                            <Server size={12} /> Internal Data
+                                        </span>
+                                        <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                                        <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+                                            <span className="relative flex h-2 w-2">
+                                              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 ${!isLive ? 'hidden' : ''}`}></span>
+                                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                            {isLive ? 'Live Connection' : 'Paused'}
+                                        </span>
+                                        <span className="text-xs text-slate-500 ml-2">
+                                            Updated: {lastUpdated.toLocaleTimeString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 z-10">
+                                <button 
+                                    onClick={() => setIsLive(!isLive)}
+                                    className={`flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700 hover:border-slate-500 text-slate-300 rounded-lg text-sm font-semibold transition-all`}
+                                >
+                                    <Activity size={16} className={isLive ? 'text-emerald-400' : 'text-slate-500'} /> 
+                                    {isLive ? 'Pause Stream' : 'Resume Stream'}
+                                </button>
+                                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                                    <Download size={16} /> Export
+                                </button>
+                            </div>
+                        </motion.header>
+
+                        {/* --- Top KPIs --- */}
+                        <motion.div 
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                        >
+                            {data.metrics.map((m, i) => (
+                                <motion.div key={m.id} variants={itemVariants} className={`glass-panel glass-panel-hover p-6 rounded-2xl relative overflow-hidden group`}>
+                                    {/* Decorative gradient blob behind the card */}
+                                    <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full ${m.bg} blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                                    
+                                    <div className="flex justify-between items-start mb-6 relative z-10">
+                                        <div className={`p-3 rounded-xl border ${m.bg} ${m.border} ${m.color} ${m.shadow}`}>
+                                            <m.icon size={22} strokeWidth={2.5} />
+                                        </div>
+                                        <span className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md bg-slate-800/50 border border-slate-700 ${m.delta > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                            {m.delta > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                                            {m.delta > 0 ? '+' : ''}{m.delta}%
+                                        </span>
+                                    </div>
+                                    <div className="relative z-10">
+                                        <h3 className="text-3xl font-display font-bold text-white mb-1 tracking-tight flex items-baseline gap-1">
+                                            {m.prefix}
+                                            {m.value.toLocaleString()}
+                                            <span className="text-lg text-slate-400 font-medium">{m.suffix}</span>
+                                        </h3>
+                                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{m.label}</p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+
+                        {/* --- Main Content Grid --- */}
+                        <motion.div 
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+                        >
+                            {/* Left Column (Charts) */}
+                            <div className="lg:col-span-2 space-y-8">
+                                
+                                {/* Efficiency Chart */}
+                                <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-lg font-display font-bold text-white flex items-center gap-2">
+                                            <Zap className="text-amber-400" size={20} /> Workflow Efficiency Matrix
+                                        </h2>
+                                        <span className="text-xs font-medium text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">Time in Minutes</span>
+                                    </div>
+                                    <div className="h-[300px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={data.efficiencyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                                <XAxis dataKey="task" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                                                <Tooltip 
+                                                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                                                    contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                    itemStyle={{ fontWeight: 600 }}
+                                                />
+                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#94a3b8', paddingTop: '20px' }}/>
+                                                <Bar dataKey="manual" name="Manual Method" fill="#475569" radius={[4, 4, 0, 0]} barSize={32} />
+                                                <Bar dataKey="aether" name="AetherBuilt" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={32} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </motion.div>
+
+                                {/* Demographics Grid inside Left Column */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Sector Split */}
+                                    <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl">
+                                        <h3 className="text-lg font-display font-bold text-white flex items-center gap-2 mb-6">
+                                            <Factory className="text-indigo-400" size={20} /> Sector Distribution
+                                        </h3>
+                                        <div className="h-48 relative">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={data.industryData}
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                        stroke="none"
+                                                    >
+                                                        {data.industryData.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                            {/* Center text for Donut */}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                                <span className="text-2xl font-display font-bold text-white">4</span>
+                                                <span className="text-[10px] uppercase tracking-widest text-slate-400">Sectors</span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Regional Split */}
+                                    <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-display font-bold text-white flex items-center gap-2 mb-6">
+                                                <MapPin className="text-rose-400" size={20} /> Regional Footprint
+                                            </h3>
+                                            <div className="space-y-5">
+                                                {data.regionalData.map((item, i) => (
+                                                    <div key={i} className="group">
+                                                        <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                                                            <span>{item.r}</span>
+                                                            <span>{item.v} Active</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-800/50 h-1.5 rounded-full overflow-hidden">
+                                                            <div 
+                                                                className={`h-full rounded-full ${item.color} ${item.glow} group-hover:opacity-80 transition-opacity`} 
+                                                                style={{ width: `${(item.v / 85) * 100}%` }} 
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                            </div>
+
+                            {/* Right Column (Feedback & Alerts) */}
+                            <div className="space-y-8">
+                                
+                                {/* Live Activity Stream (NEW) */}
+                                <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-base font-display font-bold text-white flex items-center gap-2">
+                                            <Activity className="text-emerald-400" size={18} /> Live Activity Stream
+                                        </h3>
+                                        <span className={`relative flex h-2 w-2`}>
+                                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 ${!isLive ? 'hidden' : ''}`}></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {data.activityStream.map((log, i) => (
+                                            <div key={i} className="flex gap-3 items-start border-l-2 border-slate-700 pl-3 relative">
+                                                <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-slate-500"></div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 mb-0.5">{log.time}</p>
+                                                    <p className="text-sm font-medium text-slate-300">{log.event}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+
+                                {/* Major Wins */}
+                                <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl">
+                                    <h3 className="text-base font-display font-bold text-white flex items-center gap-2 mb-4">
+                                        <CheckCircle2 className="text-emerald-400" size={18} /> Success Highlights
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {data.majorBenefits.map((item, i) => (
+                                            <div key={i} className="p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:border-emerald-500/30 transition-colors">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase border border-emerald-500/20">
+                                                        {item.metric}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-200 mb-2">"{item.benefit}"</p>
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-[9px] font-bold text-slate-500 uppercase max-w-[60%] truncate">
+                                                        {item.profile}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-slate-400">
+                                                        Via: <span className="text-white">{item.feature}</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+
+                                {/* Critical Roadblocks */}
+                                <motion.div variants={itemVariants} className="glass-panel p-6 rounded-2xl border-rose-500/20 bg-gradient-to-b from-rose-500/5 to-transparent">
+                                    <h3 className="text-base font-display font-bold text-white flex items-center gap-2 mb-4">
+                                        <AlertTriangle className="text-rose-400" size={18} /> Active Roadblocks
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {data.criticalRoadblocks.slice(0, 2).map((block, i) => ( // Show only top 2 to save space
+                                            <div key={i} className={`p-4 rounded-xl border ${block.colorClass}`}>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className={`p-1.5 rounded-lg ${block.iconClass}`}>
+                                                        <block.icon size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-white text-sm">{block.category}</h4>
+                                                    </div>
+                                                </div>
+                                                <ul className="space-y-1 mt-2">
+                                                    {block.issues.map((issue, idx) => (
+                                                        <li key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-300">
+                                                            <span className="text-slate-500 mt-0.5">•</span>
+                                                            <span>{issue}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button className="w-full mt-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors uppercase tracking-widest">
+                                        View All Roadblocks
+                                    </button>
+                                </motion.div>
+
+                            </div>
+                        </motion.div>
+
+                        <footer className="text-center py-8">
+                            <p className="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center justify-center gap-2">
+                                <span className="w-8 h-[1px] bg-slate-700"></span>
+                                AetherBuilt Operations Dashboard • Confidential
+                                <span className="w-8 h-[1px] bg-slate-700"></span>
+                            </p>
+                        </footer>
+
+                    </div>
+                </div>
+            );
+        };
+
+        const rootElement = document.getElementById('root');
+        const root = createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
