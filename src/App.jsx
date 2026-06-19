@@ -14,21 +14,19 @@ const COLORS = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2'
 
 const INITIAL_DATA = {
     metrics: [
-        { id: 'factories', label: 'Active Beta Factories', value: 279, prefix: '', suffix: '', delta: 12, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-        { id: 'time', label: 'Avg. Time Saved', value: 2.1, prefix: '', suffix: ' hrs', delta: 5, icon: Clock, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+        { id: 'factories', label: 'Active Beta Factories', value: 280, prefix: '', suffix: '', delta: 12, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+        { id: 'time', label: 'Avg. Time Saved', value: 1.8, prefix: '', suffix: ' hrs', delta: 5, icon: Clock, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
         { id: 'opex', label: 'Monthly OpEx Gain', value: 42500, prefix: '₹', suffix: '', delta: 8.4, icon: IndianRupee, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
-        { id: 'nps', label: 'Platform NPS', value: 8.8, prefix: '', suffix: '', delta: 2.1, icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
+        { id: 'nps', label: 'Avg Ease Score', value: 6.5, prefix: '', suffix: '/10', delta: 2.1, icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
     ],
     majorBenefits: [
-        { profile: 'Medium Plastics Manufacturer • Mumbai', metric: '₹2L Saved', benefit: 'Predicted motor failure, saved ₹2 Lakhs in potential downtime.', feature: 'Maintenance Alerts' },
-        { profile: 'Large Auto Parts Facility • Vadodara', metric: 'Zero Delays', benefit: 'Zero missed deadlines with clients since the Predictor went live.', feature: 'Delay Predictor' },
-        { profile: 'Small Fabrication Plant • Kolhapur', metric: 'High Trust', benefit: 'Client professionalism increased massively via instant reports.', feature: 'Client Report Share' }
+        { profile: 'Top Benefit', metric: '#1', benefit: 'Numbers more reliable now', feature: 'Dashboard' },
+        { profile: 'Top Benefit', metric: '#2', benefit: 'Identified root cause early', feature: 'Analytics' },
+        { profile: 'Top Benefit', metric: '#3', benefit: 'Less tension on floor', feature: 'Orders' }
     ],
     criticalRoadblocks: [
-        { category: 'Language Barrier', priority: 'CRITICAL', icon: Globe, issues: ['Need Marathi UI for shop floor workers', 'Need Gujarati UI for regional adoption'], colorClass: 'border-rose-200 bg-rose-50', iconClass: 'text-rose-600 bg-rose-100' },
-        { category: 'Hardware & Connectivity', priority: 'HIGH', icon: WifiOff, issues: ['Mobile app crashes on older Androids', 'Sync fails in basement factory setups'], colorClass: 'border-amber-200 bg-amber-50', iconClass: 'text-amber-600 bg-amber-100' },
-        { category: 'Setup & Onboarding', priority: 'MEDIUM', icon: Timer, issues: ['Initial manual data entry takes 3+ days', 'Too complex for non-tech supervisors'], colorClass: 'border-blue-200 bg-blue-50', iconClass: 'text-blue-600 bg-blue-100' },
-        { category: 'Missing Integrations', priority: 'LOW', icon: Puzzle, issues: ['Direct Tally export needed', 'GST calculation missing for procurement'], colorClass: 'border-purple-200 bg-purple-50', iconClass: 'text-purple-600 bg-purple-100' }
+        { category: 'Data Entry', priority: 'HIGH', icon: MessageSquare, issues: ['Needs voice typing', 'Hard for new users'], colorClass: 'border-rose-200 bg-rose-50', iconClass: 'text-rose-600 bg-rose-100' },
+        { category: 'System Performance', priority: 'MEDIUM', icon: Timer, issues: ['Performance lag', 'Alerts not timely', 'Minor bugs'], colorClass: 'border-amber-200 bg-amber-50', iconClass: 'text-amber-600 bg-amber-100' },
     ],
     efficiencyData: [
         { task: 'Inventory Audit', manual: 120, aether: 15 },
@@ -37,16 +35,17 @@ const INITIAL_DATA = {
         { task: 'Machine Check', manual: 60, aether: 10 },
     ],
     industryData: [
-        { name: 'Fabrication', value: 45 },
-        { name: 'Plastics', value: 28 },
-        { name: 'Auto Parts', value: 18 },
-        { name: 'Textiles', value: 9 },
+        { name: 'Fabrication', value: 72 },
+        { name: 'Plastics', value: 71 },
+        { name: 'Textiles', value: 69 },
+        { name: 'Auto Parts', value: 68 },
     ],
     regionalData: [
-        { r: 'Mumbai', v: 85, color: 'bg-blue-600' },
-        { r: 'Vadodara', v: 62, color: 'bg-emerald-600' },
-        { r: 'Kolhapur', v: 48, color: 'bg-amber-600' },
-        { r: 'Rajkot', v: 35, color: 'bg-rose-600' },
+        { r: 'Mumbai', v: 35, color: 'bg-blue-600' },
+        { r: 'Kolhapur', v: 32, color: 'bg-emerald-600' },
+        { r: 'Rajkot', v: 32, color: 'bg-amber-600' },
+        { r: 'Surat', v: 30, color: 'bg-rose-600' },
+        { r: 'Chennai', v: 28, color: 'bg-purple-600' },
     ],
     activityStream: [
         { time: '10:42 AM', event: 'New Factory Onboarded (Rajkot)' },
